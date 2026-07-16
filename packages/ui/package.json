@@ -1,18 +1,21 @@
 {
-  "name": "@repo/ui",
+  "name": "@sentinel/ui",
   "version": "0.0.0",
+  "type": "module",
   "private": true,
   "exports": {
-    "./*": "./src/*.tsx"
+    ".": "./src/index.ts"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "generate:component": "turbo gen react-component",
-    "check-types": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check-types": "bun run typecheck",
+    "test": "echo 'No automated tests for @sentinel/ui yet.'"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
+    "@sentinel/eslint-config": "*",
+    "@sentinel/typescript-config": "*",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
@@ -20,6 +23,8 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
+    "@sentinel/shared": "*",
+    "class-variance-authority": "^0.7.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   }

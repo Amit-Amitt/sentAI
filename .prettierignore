@@ -1,0 +1,8 @@
+.turbo
+.venv
+node_modules
+dist
+build
+coverage
+.next
+apps/api/src/sentinel_api/db/migrations

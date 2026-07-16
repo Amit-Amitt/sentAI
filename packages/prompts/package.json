@@ -1,0 +1,22 @@
+{
+  "name": "@sentinel/prompts",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "check-types": "bun run typecheck",
+    "test": "echo 'No automated tests for @sentinel/prompts yet.'"
+  },
+  "devDependencies": {
+    "@sentinel/eslint-config": "*",
+    "@sentinel/typescript-config": "*",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}

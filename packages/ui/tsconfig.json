@@ -1,7 +1,7 @@
 {
-  "extends": "@repo/typescript-config/react-library.json",
+  "extends": "@sentinel/typescript-config/react-library.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "baseUrl": ".",
     "strictNullChecks": true
   },
   "include": ["src"],
