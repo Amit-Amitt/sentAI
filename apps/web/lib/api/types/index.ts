@@ -1,3 +1,5 @@
+export * from "./organization";
+
 export interface HealthResponse {
   status: string;
   version: string;

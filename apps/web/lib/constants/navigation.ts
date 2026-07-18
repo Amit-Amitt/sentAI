@@ -1,10 +1,13 @@
 import {
   Activity,
+  Building2,
   FileText,
+  FolderKanban,
   HelpCircle,
   LayoutDashboard,
   Settings,
   ShieldAlert,
+  Users,
 } from "lucide-react";
 
 export const primaryNavigation = [
@@ -39,6 +42,21 @@ export const settingsNavigation = [
     href: "/settings",
     label: "Settings",
     icon: Settings,
+  },
+  {
+    href: "/settings/organization",
+    label: "Organization",
+    icon: Building2,
+  },
+  {
+    href: "/settings/organization/members",
+    label: "Members",
+    icon: Users,
+  },
+  {
+    href: "/settings/workspace",
+    label: "Workspace",
+    icon: FolderKanban,
   },
   {
     href: "/settings/about",

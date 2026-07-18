@@ -5,6 +5,7 @@ import { APP_METADATA } from "@sentinel/config";
 
 import { ThemeProvider } from "@/lib/providers/theme-provider";
 import { QueryProvider } from "@/lib/providers/query-provider";
+import { OrgProvider } from "@/lib/providers/org-provider";
 
 import "./globals.css";
 
@@ -35,7 +36,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <QueryProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <OrgProvider>{children}</OrgProvider>
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>

@@ -31,6 +31,8 @@ async def lifespan(app: FastAPI):
     # Initialize DB schemas automatically
     from sentinel_api.database.base import Base
     from sentinel_api.database.session import engine
+    # Import all models so Base.metadata discovers them
+    import sentinel_api.models  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         

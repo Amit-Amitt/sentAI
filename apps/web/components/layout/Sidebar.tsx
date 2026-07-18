@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Bot, Terminal } from "lucide-react";
-
-import { APP_METADATA } from "@sentinel/config";
-import { Badge } from "@sentinel/ui";
+import { Terminal } from "lucide-react";
 
 import { primaryNavigation, settingsNavigation } from "@/lib/constants/navigation";
 import { useStore } from "@/lib/store/use-store";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -17,27 +15,9 @@ export function Sidebar() {
 
   return (
     <aside className="hidden w-80 shrink-0 border-r border-border/60 bg-zinc-950/85 px-6 py-8 backdrop-blur-xl xl:flex xl:flex-col xl:justify-between h-screen sticky top-0">
-      <div className="space-y-8">
-        {/* Brand Header */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Badge variant="warning" className="border-amber-500/30 bg-amber-500/10 text-amber-400">
-              Agentic SRE
-            </Badge>
-            {isSimulating && (
-              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
-            )}
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <Bot className="h-6 w-6 text-primary" />
-              {APP_METADATA.name}
-            </h1>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {APP_METADATA.tagline}
-            </p>
-          </div>
-        </div>
+      <div className="space-y-6">
+        {/* Workspace Switcher */}
+        <WorkspaceSwitcher />
 
         {/* Navigation Items */}
         <nav className="space-y-6">
