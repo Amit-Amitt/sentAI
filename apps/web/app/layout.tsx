@@ -6,6 +6,7 @@ import { APP_METADATA } from "@sentinel/config";
 import { ThemeProvider } from "@/lib/providers/theme-provider";
 import { QueryProvider } from "@/lib/providers/query-provider";
 import { OrgProvider } from "@/lib/providers/org-provider";
+import { AuthProvider } from "@/lib/providers/auth-provider";
 
 import "./globals.css";
 
@@ -37,7 +38,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <QueryProvider>
           <ThemeProvider>
-            <OrgProvider>{children}</OrgProvider>
+            <AuthProvider>
+              <OrgProvider>{children}</OrgProvider>
+            </AuthProvider>
           </ThemeProvider>
         </QueryProvider>
       </body>

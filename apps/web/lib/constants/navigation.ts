@@ -8,6 +8,9 @@ import {
   Settings,
   ShieldAlert,
   Users,
+  User,
+  ShieldCheck,
+  Binary,
 } from "lucide-react";
 
 export const primaryNavigation = [
@@ -39,8 +42,18 @@ export const primaryNavigation = [
 
 export const settingsNavigation = [
   {
+    href: "/settings/profile",
+    label: "Profile",
+    icon: User,
+  },
+  {
+    href: "/settings/security",
+    label: "Security & Account",
+    icon: ShieldCheck,
+  },
+  {
     href: "/settings",
-    label: "Settings",
+    label: "System Configuration",
     icon: Settings,
   },
   {
@@ -57,6 +70,11 @@ export const settingsNavigation = [
     href: "/settings/workspace",
     label: "Workspace",
     icon: FolderKanban,
+  },
+  {
+    href: "/settings/auth-tests",
+    label: "Auth Test Harness",
+    icon: Binary,
   },
   {
     href: "/settings/about",

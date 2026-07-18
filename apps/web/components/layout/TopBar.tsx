@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, Command, Menu, Search, User } from "lucide-react";
 
 import { useStore } from "@/lib/store/use-store";
+import { useAuth } from "@/lib/providers/auth-provider";
 
 interface TopBarProps {
   onMenuToggle: () => void;
@@ -14,6 +16,7 @@ interface TopBarProps {
 export function TopBar({ onMenuToggle }: TopBarProps) {
   const pathname = usePathname();
   const { setCommandPaletteOpen, notifications, markNotificationAsRead } = useStore();
+  const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -133,9 +136,17 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
         </div>
 
         {/* Profile Avatar */}
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-muted/40 text-muted-foreground">
-          <User className="h-4.5 w-4.5" />
-        </div>
+        <Link
+          href="/settings/profile"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-muted/40 text-muted-foreground overflow-hidden hover:border-primary/50 transition-colors"
+          title="Commander Profile"
+        >
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+          ) : (
+            <User className="h-4.5 w-4.5" />
+          )}
+        </Link>
       </div>
     </header>
   );

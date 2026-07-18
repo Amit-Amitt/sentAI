@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Terminal } from "lucide-react";
+import { Terminal, LogOut, User } from "lucide-react";
 
 import { primaryNavigation, settingsNavigation } from "@/lib/constants/navigation";
 import { useStore } from "@/lib/store/use-store";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { useAuth } from "@/lib/providers/auth-provider";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { isSimulating, activeSimulationAgent } = useStore();
+  const { user, logout } = useAuth();
 
   return (
     <aside className="hidden w-80 shrink-0 border-r border-border/60 bg-zinc-950/85 px-6 py-8 backdrop-blur-xl xl:flex xl:flex-col xl:justify-between h-screen sticky top-0">
@@ -90,32 +92,68 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* Simulator / Telemetry Running State */}
-      <div className="rounded-2xl border border-border/50 bg-muted/20 p-4 space-y-3">
-        <div className="flex justify-between items-center text-xs">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Terminal className="h-4 w-4" /> LangGraph Status
-          </span>
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-            isSimulating ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-zinc-800 text-zinc-400"
-          }`}>
-            {isSimulating ? "DIAGNOSING" : "STANDBY"}
-          </span>
+      {/* Simulator & Session controls */}
+      <div className="space-y-3.5">
+        {/* Simulator / Telemetry Running State */}
+        <div className="rounded-2xl border border-border/50 bg-muted/20 p-4 space-y-3">
+          <div className="flex justify-between items-center text-xs">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Terminal className="h-4 w-4" /> LangGraph Status
+            </span>
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+              isSimulating ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-zinc-800 text-zinc-400"
+            }`}>
+              {isSimulating ? "DIAGNOSING" : "STANDBY"}
+            </span>
+          </div>
+          {isSimulating && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>Active Agent:</span>
+                <span className="font-semibold text-foreground animate-pulse">{activeSimulationAgent}</span>
+              </div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-emerald-500"
+                  initial={{ width: "10%" }}
+                  animate={{ width: "90%" }}
+                  transition={{ duration: 10, ease: "easeInOut" }}
+                />
+              </div>
+            </div>
+          )}
         </div>
-        {isSimulating && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>Active Agent:</span>
-              <span className="font-semibold text-foreground animate-pulse">{activeSimulationAgent}</span>
+
+        {/* Commander User Session Profile */}
+        {user && (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-border/50 bg-background/40">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="h-8.5 w-8.5 rounded-xl border border-border/80 bg-muted/30 shrink-0 overflow-hidden">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                    <User className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-[11px] font-bold text-foreground truncate">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-[9px] text-muted-foreground truncate">
+                  {user.companyName}
+                </p>
+              </div>
             </div>
-            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-emerald-500"
-                initial={{ width: "10%" }}
-                animate={{ width: "90%" }}
-                transition={{ duration: 10, ease: "easeInOut" }}
-              />
-            </div>
+            
+            <button
+              onClick={logout}
+              className="rounded-lg p-1.5 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/5 transition"
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         )}
       </div>
