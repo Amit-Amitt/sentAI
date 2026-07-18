@@ -13,14 +13,23 @@ import {
   ShieldCheck,
   Binary,
   Key,
+  Database,
+  TerminalSquare,
+  Wrench
 } from "lucide-react";
 
 export const primaryNavigation = [
   {
-    href: "/dashboard",
-    label: "Dashboard",
-    description: "Operational system stats",
+    href: "/command-center",
+    label: "AI Command Center",
+    description: "Live Executive Ops Dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard",
+    label: "Metrics & Status",
+    description: "Operational system stats",
+    icon: Activity,
   },
   {
     href: "/incidents",
@@ -39,6 +48,36 @@ export const primaryNavigation = [
     label: "Reports Archive",
     description: "Incident post-mortems",
     icon: FileText,
+  },
+  {
+    href: "/memory",
+    label: "Memory & Context",
+    description: "Historical incident repository",
+    icon: Database,
+  },
+  {
+    href: "/simulation",
+    label: "Simulation Center",
+    description: "Trigger synthetic incidents",
+    icon: TerminalSquare,
+  },
+  {
+    href: "/remediation",
+    label: "Remediation Center",
+    description: "AI-generated fixes and patches",
+    icon: Wrench,
+  },
+  {
+    href: "/projects",
+    label: "Projects & Apps",
+    description: "Connected telemetry apps",
+    icon: FolderKanban,
+  },
+  {
+    href: "/demo",
+    label: "Live Demo Controls",
+    description: "Trigger real-world failures",
+    icon: Binary,
   },
 ] as const;
 

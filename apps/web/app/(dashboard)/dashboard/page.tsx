@@ -10,7 +10,6 @@ import { useIncidents } from "@/lib/api/hooks/useIncidents";
 import { MetricCardSkeleton, ChartSkeleton, ListSkeleton } from "@/components/ui/skeletons";
 
 export default function DashboardPage() {
-  const { triggerSimulation, isSimulating } = useStore();
   const { data, isLoading } = useIncidents();
 
   const incidents = data?.results || [];
@@ -80,14 +79,13 @@ export default function DashboardPage() {
             Real-time telemetry and autonomous sub-agent orchestration dashboard.
           </p>
         </div>
-        <button
-          onClick={() => triggerSimulation("High latency detected on checkout APIs", "SEV1")}
-          disabled={isSimulating}
-          className={`flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/95 disabled:opacity-50`}
+        <Link
+          href="/simulation"
+          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/95"
         >
           <Play className="h-4 w-4 fill-current" />
-          {isSimulating ? "Investigating..." : "Simulate Incident"}
-        </button>
+          Simulate Incident
+        </Link>
       </div>
 
       {/* Grid of Metric Cards */}

@@ -12,6 +12,14 @@ from sentinel_api.config.settings import settings
 settings.APP_ENV = "testing"
 settings.DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
+# Compile PostgreSQL JSONB to SQLite JSON during test runs
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB
+
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(element, compiler, **kw):
+    return "JSON"
+
 from sentinel_api.app import app as fastapi_app  # noqa: E402
 from sentinel_api.database.session import get_db_session  # noqa: E402
 

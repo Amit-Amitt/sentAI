@@ -1,0 +1,12 @@
+app/(dashboard)/memory/page.tsx(5,23): error TS2307: Cannot find module '@/components/ui/input' or its corresponding type declarations.
+app/(dashboard)/memory/page.tsx(10,26): error TS2307: Cannot find module '@/components/ui/skeleton' or its corresponding type declarations.
+app/(dashboard)/memory/page.tsx(37,24): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/(dashboard)/memory/page.tsx(57,38): error TS2322: Type 'string' is not assignable to type '"SEV1" | "SEV2" | "SEV3"'.
+app/(dashboard)/memory/page.tsx(84,101): error TS2322: Type '{ confidence: number; size: number; strokeWidth: number; showText: boolean; }' is not assignable to type 'IntrinsicAttributes & ConfidenceIndicatorProps'.
+  Property 'showText' does not exist on type 'IntrinsicAttributes & ConfidenceIndicatorProps'.
+lib/api/hooks/useMemory.ts(3,25): error TS2307: Cannot find module '@/lib/auth/AuthContext' or its corresponding type declarations.
+lib/api/services/memory.ts(1,32): error TS2307: Cannot find module '../base' or its corresponding type declarations.
+lib/api/services/memory.ts(2,15): error TS2305: Module '"../client"' has no exported member 'ApiResponse'.
+lib/api/services/memory.ts(38,33): error TS2339: Property 'client' does not exist on type 'MemoryService'.
+lib/api/services/memory.ts(57,33): error TS2339: Property 'client' does not exist on type 'MemoryService'.
+lib/api/services/memory.ts(70,33): error TS2339: Property 'client' does not exist on type 'MemoryService'.

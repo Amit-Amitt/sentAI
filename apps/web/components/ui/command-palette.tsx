@@ -6,10 +6,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Command, CornerDownLeft, ShieldAlert, Sliders, Terminal, X } from "lucide-react";
 
 import { useStore } from "@/lib/store/use-store";
+import { useOrgStore } from "@/lib/store/org-store";
+import { useStartSimulation } from "@/lib/api/hooks/useSimulation";
 
 export function CommandPalette() {
   const router = useRouter();
-  const { commandPaletteOpen, setCommandPaletteOpen, triggerSimulation, clearNotifications } = useStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, clearNotifications } = useStore();
+  const { activeWorkspace } = useOrgStore();
+  const startSimulation = useStartSimulation();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,12 +57,22 @@ export function CommandPalette() {
       commands: [
         {
           label: "Trigger SEV1 Database Pool Saturation Simulation",
-          action: () => triggerSimulation("Database connection pool exhausted on checkout flow", "SEV1"),
+          action: () => {
+            if (activeWorkspace?.id) {
+              startSimulation.mutateAsync({ workspaceId: activeWorkspace.id, payload: { scenario_id: "db_pool_exhausted", severity: "SEV1" }})
+                .then(run => router.push(`/incidents/${run.incident_id}`));
+            }
+          },
           shortcut: "T S 1"
         },
         {
           label: "Trigger SEV2 Cache Memory Saturation Simulation",
-          action: () => triggerSimulation("Redis cache maxmemory eviction crashes", "SEV2"),
+          action: () => {
+            if (activeWorkspace?.id) {
+              startSimulation.mutateAsync({ workspaceId: activeWorkspace.id, payload: { scenario_id: "redis_cache_failure", severity: "SEV2" }})
+                .then(run => router.push(`/incidents/${run.incident_id}`));
+            }
+          },
           shortcut: "T S 2"
         },
         {

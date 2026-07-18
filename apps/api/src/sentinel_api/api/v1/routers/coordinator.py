@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sentinel_api.api.v1.controllers.coordinator import WorkflowController
 from sentinel_api.api.v1.validators.schemas import CoordinatorRunRequest
 
-router = APIRouter(prefix="/workflow", tags=["workflow"])
+router = APIRouter(prefix="/coordinator", tags=["coordinator"])
 
 
 def get_controller() -> WorkflowController:

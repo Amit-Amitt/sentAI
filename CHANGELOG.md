@@ -1,0 +1,88 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Unreleased] - 2026-07-18
+### Added
+- **Hackathon Demo Experience & Polish**
+  - Overhauled the Landing Page (`/`) with `framer-motion` animations, emphasizing the 'AI Incident Commander' narrative.
+  - Implemented the 'Fault Injection Lab' (`/api/v1/demo/inject-fault`) to safely simulate production failures directly into the Telemetry Pipeline without bypassing the core architecture.
+  - Built `LiveTimeline` and `RootCauseStory` components to transform raw AI output into a compelling storytelling experience.
+  - Created a dedicated `/judges` portal to highlight the project's technical architecture, innovation, and completeness.
+  - Published comprehensive Hackathon documentation (`docs/hackathon/`) including the Golden Path Demo Script.
+- **Production Deployment & Scalability**
+  - Containerized all services using optimized, multi-stage Dockerfiles with non-root execution.
+  - Implemented comprehensive Kubernetes Helm charts (`deploy/helm/sentinel-ai`) with Deployments, HPA, PDBs, and Ingress rules.
+  - Automated CI/CD pipelines using GitHub Actions (`ci.yml`, `release.yml`) for linting, testing, Docker builds, and Helm validation.
+  - Hardened API resilience via `/health/liveness` and `/health/readiness` probes, graceful shutdowns, and `prometheus-fastapi-instrumentator`.
+  - Audited environments and created strict `.env.production.example` configurations.
+- **Billing & Multi-Tenant SaaS Platform**
+  - Integrated Stripe SDK to support Subscription Billing, Configurable Tiers, and Feature Gating.
+  - Developed `FeatureGate.check()` to ensure no subsystem (AI, Telemetry, Notifications) hardcodes pricing logic; instead, they query the active `BillingPlan`.
+  - Built `Meter.record_usage()` for high-throughput, near real-time tracking of API requests and telemetry ingestion.
+  - Implemented secure Webhook routing (`/billing/webhook`) with signature verification and idempotency checks via `WebhookEvent`.
+  - Configured automated background workers (`billing_tasks.py`) to run nightly usage aggregation and enforce quotas.
+- **Enterprise Identity & Access Management**
+  - Integrated full multi-tenant IAM with `IdentityService` managing JWT Lifecycles and Password Hashing (bcrypt).
+  - Designed Database Architecture for `UserSession` (revocation tracking), `SystemRole` (RBAC), `ServiceAccount` (M2M authentication), and `ApiToken`.
+  - Added Multi-Factor Authentication (TOTP) logic embedded deep into the User model and `/auth/mfa/verify` endpoint.
+  - Deployed `AuditService` maintaining an immutable `AuditLog` of all security-relevant platform actions.
+  - Implemented background cleanup workers (`iam_tasks.py`) to systematically purge expired sessions and revoked tokens.
+- **Enterprise Notification Hub & Incident Collaboration**
+  - Integrated Notification Providers for Slack (Block Kit), Teams (Adaptive Cards), Discord, Email (Resend), and PagerDuty (Events V2 API).
+  - Developed a scalable `NotificationEngine` capable of evaluating dynamic `NotificationPolicies` to intelligently route incidents based on severity or service.
+  - Implemented `EscalationPolicies` and `OnCallSchedules` to prevent alert fatigue and automatically escalate unacknowledged incidents.
+  - Added robust collaboration features: Incident Timeline, Comments, and explicit Acknowledgements synchronized to the database.
+  - Built an async `notification_tasks` background queue with exponential backoff to handle webhook delivery reliably.
+- **Configuration & Secret Management**
+  - Centralized `Settings` architecture using Pydantic `BaseSettings` for absolute type safety and eager runtime validation.
+  - Added new `Feature Flags` toggles (e.g., `ENABLE_AI`, `ENABLE_OTEL`) to gracefully degrade functionality in isolated environments.
+  - Restructured and organized `.env.example` files into logical domains (Database, AI Providers, Kubernetes, Observability, GitHub, Authentication).
+  - Built secret masking utilities (`config_utils.py`) to prevent API keys and JWT secrets from being accidentally printed into observability logs.
+  - The API now explicitly halts startup and prints detailed configuration instructions if a required environment variable is missing.
+- **AI Auto-Remediation & GitHub PR Automation**
+  - Advanced database schema mapping the entire remediation lifecycle: `RemediationPlan`, `ValidationResult`, `DraftPullRequest`, and explicit `ApprovalRequest`.
+  - Extensible `RemediationEngine` allowing LangGraph agents to simulate sandbox validation.
+  - Native integration with the `GithubClient` to programmatically branch, commit, and open Draft Pull Requests for proposed code fixes.
+  - New `remediation_router.py` defining endpoints for users to explicitly approve or reject remediations, establishing a strict human-in-the-loop security boundary.
+  - Configurable execution modes: `read_only`, `draft_pr`, and `approval_required`.
+- **Enterprise Observability Integrations**
+  - Database schema (`observability.py`) to map existing Prometheus, Grafana, Loki, and Alertmanager configurations.
+  - Native API wrappers (`observability_clients.py`) to execute queries dynamically without data duplication.
+  - Background synchronization (`observability_tasks.py`) to periodically ingest Grafana Dashboards and Prometheus Alert Rules.
+  - Built webhook router (`/observability/alertmanager/webhook`) to consume Alertmanager alerts and ingest them directly into the Sentinel Telemetry Engine as structured events.
+  - Extended the `IncidentCorrelator` to dynamically attach synced Grafana Dashboards to `IncidentEvidence`.
+  - Added new environmental variables for integration connection strings.
+- **Kubernetes & Docker Runtime Intelligence**
+  - Advanced Kubernetes discovery mapping Clusters, Nodes, Namespaces, Deployments, Pods, and Containers.
+  - Native Kubernetes Client wrapper (`KubernetesClient`) supporting in-cluster and kubeconfig auth.
+  - Background RQ worker tasks (`kubernetes_tasks.py`) to periodically synchronize cloud-native resources.
+  - Added read-only `RBAC.yaml` manifest for secure cluster attachment.
+  - Detection Engine correlation updated to attach exact `kubernetes_context` (Phase, Node, Container state, Recent Warnings) to incidents when telemetry contains `k8s.pod.name`.
+  - Added new environmental variables for Docker/K8s socket and config paths.
+- **GitHub Deployment Intelligence**
+  - Database models for `GithubRepository`, `GithubCommit`, `GithubPullRequest`, and `GithubDeployment`.
+  - Background asynchronous webhook processor (`github_tasks.py`) for synchronizing Git metadata continuously.
+  - Native GitHub API Client for direct source-code insights.
+  - AI Risk Analyzer (`GithubRiskAnalyzer`) that calculates a Deployment Risk Score based on configuration, dependencies, and DB migration changes.
+  - Webhook endpoint (`/github/webhooks`) with `X-Hub-Signature-256` HMAC validation.
+  - Incident correlation engine updated to automatically fetch the latest `GithubDeployment` and inject the Risk Score + Commit details into AI orchestration.
+  - Added new environmental variables for GitHub App configuration.
+- **OpenTelemetry Integration**
+  - Native OTLP HTTP JSON endpoints (`/otlp/v1/traces`, `/otlp/v1/metrics`, `/otlp/v1/logs`).
+  - Specialized parsing to extract OpenTelemetry `ResourceSpans` and `ScopeSpans`.
+  - Optimized database schemas for distributed tracing (`Trace`, `Span`, `SpanEvent`, `SpanLink`).
+  - Native integration with the existing `TelemetryPipeline` avoiding processing duplication.
+  - Incident correlation dynamically mapping traced errors to incidents via `DetectionEngine`.
+  - Added test coverage mimicking OpenTelemetry SDK payloads.
+  - Environment variables `SENTINEL_OTLP_HTTP_PORT` and `SENTINEL_OTLP_GRPC_PORT`.
+- **Production Incident Detection Engine**
+  - Configurable `DetectionRule` and dynamic `SeverityEngine`.
+  - `AnomalyDetector` with statistical evaluation logic (Z-Score, Moving Average).
+  - `IncidentCorrelator` to merge related telemetry events and prevent duplicate alert noise.
+  - New SQLAlchemy Database Models: `Incident`, `IncidentEvidence`, `IncidentTimeline`, `DetectionHistory`, `AffectedService`.
+  - Alembic Migration `20260718_0005_create_detection_engine_models.py`.
+  - Trigger system integrated directly with the internal LangGraph `WorkflowExecutor`.
+  - Real-time incident streaming via Redis PubSub inside `IntegrationTriggerService`.
+  - Unit tests for the detection logic and correlations.
+  - Environment variables `SENTINEL_DETECTION_WINDOW_MINS` and `SENTINEL_MAX_ALERTS_PER_MIN` to root and `apps/api/` configuration files.

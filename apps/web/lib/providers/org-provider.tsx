@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { organizationsService } from "../api/services/organizations";
 import { workspacesService } from "../api/services/workspaces";
 import {
@@ -22,8 +22,10 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     setHydrated,
     isHydrated,
   } = useOrgStore();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (isHydrated) return;
 
     async function hydrate() {
@@ -55,8 +57,10 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
             workspaces.find((w) => w.id === persistedWsId) || workspaces[0];
           setActiveWorkspace(activeWs ?? null);
         }
-      } catch (err) {
-        console.error("Failed to hydrate org context:", err);
+      } catch (err: any) {
+        if (err?.response?.status !== 401) {
+          console.error("Failed to hydrate org context:", err);
+        }
       } finally {
         setHydrated(true);
       }
@@ -71,6 +75,10 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     setActiveWorkspace,
     setHydrated,
   ]);
+
+  if (!mounted) {
+    return null;
+  }
 
   return <>{children}</>;
 }

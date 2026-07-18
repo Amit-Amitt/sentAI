@@ -109,7 +109,9 @@ export default function ProfilePage() {
             {/* Display active avatar */}
             <div className="relative group">
               <div className="absolute inset-0 bg-primary/20 blur-[15px] rounded-full opacity-60" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                suppressHydrationWarning
                 src={selectedAvatar}
                 alt="Avatar Preview"
                 className="relative h-20 w-20 rounded-2xl object-cover border border-border/80"
@@ -131,6 +133,7 @@ export default function ProfilePage() {
                     }`}
                     title={opt.name}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={opt.url} alt={opt.name} className="h-10 w-10 rounded-lg object-cover" />
                   </button>
                 ))}

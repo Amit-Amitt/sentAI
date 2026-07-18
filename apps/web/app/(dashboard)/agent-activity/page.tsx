@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, Bot, Cpu, GitBranch, Play, RefreshCw, Zap } from "lucide-react";
+import Link from "next/link";
 
 import { useStore } from "@/lib/store/use-store";
 import { ConfidenceIndicator } from "@/components/ui/confidence-indicator";
@@ -30,7 +31,7 @@ const getCompletedAgentsForSimulation = (activeAgent: string | null, targetAgent
 };
 
 export default function AgentActivityPage() {
-  const { selectedIncidentId, triggerSimulation, isSimulating, activeSimulationAgent } = useStore();
+  const { selectedIncidentId, isSimulating, activeSimulationAgent } = useStore();
   const { data: incidentsData } = useIncidents();
   const incidents = incidentsData?.results || [];
 
@@ -78,14 +79,13 @@ export default function AgentActivityPage() {
             Real-time execution stats for parallel LangGraph sub-agent nodes.
           </p>
         </div>
-        <button
-          onClick={() => triggerSimulation("High latency detected on checkout APIs", "SEV1")}
-          disabled={isSimulating}
-          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/95 disabled:opacity-50"
+        <Link
+          href="/simulation"
+          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/95"
         >
-          <RefreshCw className={`h-4 w-4 ${isSimulating ? "animate-spin" : ""}`} />
-          {isSimulating ? "Executing Workflow..." : "Dispatch Graph Run"}
-        </button>
+          <Play className="h-4 w-4 fill-current" />
+          Dispatch Graph Run
+        </Link>
       </div>
 
       {/* Visual Workflow Graph */}

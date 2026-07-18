@@ -187,18 +187,29 @@ async def similar_incidents_node(state: WorkflowState) -> dict[str, Any]:
     timestamp = datetime.now(UTC).isoformat()
     start_time = time.perf_counter()
     
+    import uuid
     similar_incidents = []
     
     # We retrieve the memory using the incident summary and workspace context
     incident = state.get("incident")
-    if incident and incident.workspace_id:
-        async with AsyncSessionLocal() as session:
-            memory_service = MemoryService(session)
-            memories = await memory_service.find_similar(
-                workspace_id=incident.workspace_id,
-                query_text=incident.summary,
-                limit=3
-            )
+    workspace_id_raw = getattr(incident, "workspace_id", None)
+    if not workspace_id_raw and incident and getattr(incident, "signals", None) and isinstance(incident.signals, dict):
+        workspace_id_raw = incident.signals.get("workspace_id")
+        
+    if incident and workspace_id_raw:
+        try:
+            workspace_uuid = uuid.UUID(str(workspace_id_raw))
+        except ValueError:
+            workspace_uuid = None
+            
+        if workspace_uuid:
+            async with AsyncSessionLocal() as session:
+                memory_service = MemoryService(session)
+                memories = await memory_service.find_similar(
+                    workspace_id=workspace_uuid,
+                    query_text=incident.summary,
+                    limit=3
+                )
             # Format the output for the Root Cause Agent
             similar_incidents = [
                 {

@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -38,6 +38,10 @@ class IncidentContext(BaseModel):
     signals: dict[str, Any] = Field(
         default_factory=dict,
         description="Dictionary containing raw signal streams, logs, or metrics",
+    )
+    workspace_id: Optional[str] = Field(
+        None,
+        description="Optional workspace UUID associated with the incident",
     )
 
 

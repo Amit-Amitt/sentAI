@@ -40,6 +40,11 @@ class WorkflowController:
                 intermediate_results=payload.inputs or {}
             )
             
+            # Legacy compatibility fields for tests/clients
+            state_data = result.get("state", {})
+            result["agent_results"] = state_data.get("agent_outputs", {})
+            result["incident_summary"] = state_data.get("incident_title", incident_ctx.summary)
+            
             return result
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))

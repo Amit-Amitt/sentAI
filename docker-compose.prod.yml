@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    image: sentinel-ai/api:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - SENTINEL_APP_ENV=production
+      - SENTINEL_DATABASE_URL=${SENTINEL_DATABASE_URL}
+      - SENTINEL_REDIS_URL=${SENTINEL_REDIS_URL}
+      - SENTINEL_JWT_SECRET=${SENTINEL_JWT_SECRET}
+      - SENTINEL_AUTH_ENCRYPTION_KEY=${SENTINEL_AUTH_ENCRYPTION_KEY}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/liveness"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: sentinel-ai/web:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:8000}
+    restart: always
+    depends_on:
+      - api
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  redis_data:

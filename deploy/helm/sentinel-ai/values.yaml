@@ -1,0 +1,82 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/sentinel-ai
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext:
+  runAsUser: 1001
+  runAsNonRoot: true
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.sentinel-ai.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: sentinel-api
+              port:
+                number: 80
+    - host: app.sentinel-ai.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: sentinel-web
+              port:
+                number: 80
+  tls:
+    - secretName: sentinel-tls
+      hosts:
+        - api.sentinel-ai.local
+        - app.sentinel-ai.local
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+env:
+  SENTINEL_APP_ENV: "production"
+  # Mount sensitive keys from a preexisting Secret
+  # envFromSecretName: "sentinel-secrets"
+
+pdb:
+  enabled: true
+  minAvailable: 1

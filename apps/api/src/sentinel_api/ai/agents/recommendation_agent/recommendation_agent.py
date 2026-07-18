@@ -98,12 +98,16 @@ class RecommendationAgent(BaseAgent):
             or inputs.get("root_cause")
             or "Unknown incident issue"
         )
-        rc_confidence = float(
+        if isinstance(root_cause, dict):
+            root_cause = root_cause.get("root_cause") or root_cause.get("summary") or "Unknown incident issue"
+        rc_confidence_val = (
             signals.get("confidence")
             or rc_output.get("confidence")
+            or (inputs.get("root_cause").get("confidence") if isinstance(inputs.get("root_cause"), dict) else None)
             or inputs.get("confidence")
             or 0.85
         )
+        rc_confidence = float(rc_confidence_val)
 
         affected_services = (
             signals.get("affected_services")
