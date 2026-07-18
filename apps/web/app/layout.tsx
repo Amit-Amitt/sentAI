@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { APP_METADATA } from "@sentinel/config";
 
 import { ThemeProvider } from "@/lib/providers/theme-provider";
+import { QueryProvider } from "@/lib/providers/query-provider";
 
 import "./globals.css";
 
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

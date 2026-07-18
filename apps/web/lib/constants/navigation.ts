@@ -1,29 +1,48 @@
-import { APP_ROUTES } from "@sentinel/config";
+import {
+  Activity,
+  FileText,
+  HelpCircle,
+  LayoutDashboard,
+  Settings,
+  ShieldAlert,
+} from "lucide-react";
 
 export const primaryNavigation = [
   {
-    href: APP_ROUTES.incidents,
-    label: "Incidents",
-    description: "Operational command center",
+    href: "/dashboard",
+    label: "Dashboard",
+    description: "Operational system stats",
+    icon: LayoutDashboard,
   },
   {
-    href: APP_ROUTES.simulator,
-    label: "Simulator",
-    description: "Deterministic demo scenarios",
+    href: "/incidents",
+    label: "Incidents",
+    description: "Active SRE incident board",
+    icon: ShieldAlert,
+  },
+  {
+    href: "/agent-activity",
+    label: "Agent Activity",
+    description: "LangGraph sub-agent logs",
+    icon: Activity,
+  },
+  {
+    href: "/reports",
+    label: "Reports Archive",
+    description: "Incident post-mortems",
+    icon: FileText,
   },
 ] as const;
 
 export const settingsNavigation = [
   {
-    href: APP_ROUTES.settingsIntegrations,
-    label: "Integrations",
+    href: "/settings",
+    label: "Settings",
+    icon: Settings,
   },
   {
-    href: APP_ROUTES.settingsPrompts,
-    label: "Prompts",
-  },
-  {
-    href: APP_ROUTES.settingsAbout,
-    label: "About",
+    href: "/settings/about",
+    label: "About Sentinel",
+    icon: HelpCircle,
   },
 ] as const;

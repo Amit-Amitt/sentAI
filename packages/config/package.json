@@ -13,6 +13,9 @@
     "check-types": "bun run typecheck",
     "test": "echo 'No automated tests for @sentinel/config yet.'"
   },
+  "dependencies": {
+    "@sentinel/shared": "*"
+  },
   "devDependencies": {
     "@sentinel/eslint-config": "*",
     "@sentinel/typescript-config": "*",
