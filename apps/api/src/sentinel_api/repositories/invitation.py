@@ -1,5 +1,3 @@
-"""Repository for Invitation entity database operations."""
-
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import List, Optional
@@ -21,9 +19,10 @@ class InvitationRepository:
         token: str,
         organization_id: uuid.UUID,
         invited_by: uuid.UUID,
+        workspaces: Optional[List[str]] = None,
         expires_in_days: int = 7,
     ) -> Invitation:
-        """Creates a new invitation record."""
+        """Creates a new invitation record with optional workspaces scope."""
         db_obj = Invitation(
             email=email,
             role=role,
@@ -31,6 +30,7 @@ class InvitationRepository:
             organization_id=organization_id,
             invited_by=invited_by,
             status="pending",
+            workspaces=workspaces or [],
             expires_at=datetime.now(UTC) + timedelta(days=expires_in_days),
         )
         db.add(db_obj)

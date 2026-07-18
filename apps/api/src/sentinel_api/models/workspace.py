@@ -31,8 +31,16 @@ class Workspace(BaseModel):
 
     # Parent organization
     organization_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False
     )
     organization = relationship(
         "Organization", back_populates="workspaces", lazy="selectin"
+    )
+
+    # Members relationship
+    members = relationship(
+        "WorkspaceMember",
+        back_populates="workspace",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )

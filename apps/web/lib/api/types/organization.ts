@@ -1,7 +1,7 @@
 // ── Multi-Tenant Organization & Workspace Types ──────────────
 
 export type MemberRole = "owner" | "admin" | "engineer" | "viewer";
-export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked";
+export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked" | "cancelled" | "rejected";
 export type WorkspaceEnvironment = "development" | "staging" | "production";
 
 export interface UserInfo {
@@ -93,6 +93,7 @@ export interface Membership {
   role: MemberRole;
   user?: UserInfo | null;
   created_at?: string | null;
+  workspaces?: Workspace[];
 }
 
 export interface MembershipListResponse {
@@ -118,8 +119,10 @@ export interface Invitation {
   status: InvitationStatus;
   organization_id: string;
   invited_by: string;
+  token: string;
   expires_at?: string | null;
   created_at?: string | null;
+  workspaces?: string[];
 }
 
 export interface InvitationListResponse {
@@ -130,4 +133,22 @@ export interface InvitationListResponse {
 export interface CreateInvitationRequest {
   email: string;
   role?: MemberRole;
+  workspaces?: string[];
+}
+
+// ── Activity Log ─────────────────────────────────────────────
+
+export interface MemberActivity {
+  id: string;
+  organization_id: string;
+  user_id?: string | null;
+  action: string;
+  details: Record<string, any>;
+  created_at?: string | null;
+  user?: UserInfo | null;
+}
+
+export interface MemberActivityListResponse {
+  results: MemberActivity[];
+  total: number;
 }

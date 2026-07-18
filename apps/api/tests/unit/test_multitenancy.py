@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from sentinel_api.database.base import Base
 from sentinel_api.database.session import get_db_session
+from sentinel_api.database.seed import seed_roles_and_permissions
 
 
 @pytest.fixture
@@ -25,6 +26,8 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         engine, class_=AsyncSession, expire_on_commit=False
     )
     async with session_maker() as session:
+        # Pre-seed roles and permissions
+        await seed_roles_and_permissions(session)
         yield session
         await session.rollback()
 

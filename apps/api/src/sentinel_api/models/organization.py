@@ -38,8 +38,8 @@ class Organization(BaseModel):
         lazy="selectin",
         cascade="all, delete-orphan",
     )
-    memberships = relationship(
-        "Membership",
+    members = relationship(
+        "OrganizationMember",
         back_populates="organization",
         lazy="selectin",
         cascade="all, delete-orphan",

@@ -60,7 +60,7 @@ class WorkspaceListResponse(BaseModel):
 
 
 class MembershipResponse(BaseModel):
-    """Serialized membership record with embedded user info."""
+    """Serialized membership record with embedded user info and scoped workspaces."""
 
     id: str
     user_id: str
@@ -69,6 +69,7 @@ class MembershipResponse(BaseModel):
     role: str
     user: Optional[UserResponse] = None
     created_at: Optional[str] = None
+    workspaces: List[WorkspaceResponse] = Field(default_factory=list)
 
 
 class MembershipListResponse(BaseModel):
@@ -89,10 +90,30 @@ class InvitationResponse(BaseModel):
     invited_by: str
     expires_at: Optional[str] = None
     created_at: Optional[str] = None
+    workspaces: List[str] = Field(default_factory=list)
 
 
 class InvitationListResponse(BaseModel):
     """List of invitations within an organization."""
 
     results: List[InvitationResponse]
+    total: int
+
+
+class MemberActivityResponse(BaseModel):
+    """Serialized audit log of member activity."""
+
+    id: str
+    organization_id: str
+    user_id: Optional[str] = None
+    action: str
+    details: Dict[str, Any] = Field(default_factory=dict)
+    created_at: Optional[str] = None
+    user: Optional[UserResponse] = None
+
+
+class MemberActivityListResponse(BaseModel):
+    """Paginated list of team member activity logs."""
+
+    results: List[MemberActivityResponse]
     total: int

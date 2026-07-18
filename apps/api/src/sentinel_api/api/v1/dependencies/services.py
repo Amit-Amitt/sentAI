@@ -1,3 +1,4 @@
+from sentinel_api.services.activity import ActivityService
 from sentinel_api.services.investigation import InvestigationService
 from sentinel_api.services.invitation import InvitationService
 from sentinel_api.services.membership import MembershipService
@@ -9,6 +10,7 @@ _organization_service = OrganizationService()
 _workspace_service = WorkspaceService()
 _membership_service = MembershipService()
 _invitation_service = InvitationService()
+_activity_service = ActivityService()
 
 
 def get_investigation_service() -> InvestigationService:
@@ -34,3 +36,8 @@ def get_membership_service() -> MembershipService:
 def get_invitation_service() -> InvitationService:
     """Returns the singleton instance of InvitationService."""
     return _invitation_service
+
+
+def get_activity_service() -> ActivityService:
+    """Returns the singleton instance of ActivityService."""
+    return _activity_service

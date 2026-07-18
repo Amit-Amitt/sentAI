@@ -6,10 +6,23 @@ import type {
   CreateInvitationRequest,
 } from "../types";
 
-export function useMembers(orgId: string | null) {
+export function useMembers(
+  orgId: string | null,
+  search?: string,
+  roleFilter?: string,
+  limit: number = 50,
+  offset: number = 0
+) {
   return useQuery({
-    queryKey: ["members", orgId],
-    queryFn: () => organizationsService.listMembers(orgId!),
+    queryKey: ["members", orgId, search, roleFilter, limit, offset],
+    queryFn: () =>
+      organizationsService.listMembers(
+        orgId!,
+        search,
+        roleFilter,
+        limit,
+        offset
+      ),
     enabled: !!orgId,
   });
 }
@@ -26,6 +39,7 @@ export function useAddMember() {
     }) => organizationsService.addMember(orgId, payload),
     onSuccess: (_data, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["members", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
     },
   });
 }
@@ -44,6 +58,7 @@ export function useUpdateMemberRole() {
     }) => organizationsService.updateMemberRole(orgId, memberId, payload),
     onSuccess: (_data, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["members", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
     },
   });
 }
@@ -60,6 +75,24 @@ export function useRemoveMember() {
     }) => organizationsService.removeMember(orgId, memberId),
     onSuccess: (_data, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["members", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
+    },
+  });
+}
+
+export function useTransferOwnership() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      orgId,
+      memberId,
+    }: {
+      orgId: string;
+      memberId: string;
+    }) => organizationsService.transferOwnership(orgId, memberId),
+    onSuccess: (_data, { orgId }) => {
+      queryClient.invalidateQueries({ queryKey: ["members", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
     },
   });
 }
@@ -84,6 +117,78 @@ export function useCreateInvitation() {
     }) => organizationsService.createInvitation(orgId, payload),
     onSuccess: (_data, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["invitations", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
     },
+  });
+}
+
+export function useResendInvitation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      orgId,
+      invitationId,
+    }: {
+      orgId: string;
+      invitationId: string;
+    }) => organizationsService.resendInvitation(orgId, invitationId),
+    onSuccess: (_data, { orgId }) => {
+      queryClient.invalidateQueries({ queryKey: ["invitations", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
+    },
+  });
+}
+
+export function useCancelInvitation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      orgId,
+      invitationId,
+    }: {
+      orgId: string;
+      invitationId: string;
+    }) => organizationsService.cancelInvitation(orgId, invitationId),
+    onSuccess: (_data, { orgId }) => {
+      queryClient.invalidateQueries({ queryKey: ["invitations", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", orgId] });
+    },
+  });
+}
+
+export function useInvitation(token: string | null) {
+  return useQuery({
+    queryKey: ["invitation", token],
+    queryFn: () => organizationsService.getInvitation(token!),
+    enabled: !!token,
+  });
+}
+
+export function useAcceptInvitation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => organizationsService.acceptInvitation(token),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces", data.organization_id] });
+    },
+  });
+}
+
+export function useRejectInvitation() {
+  return useMutation({
+    mutationFn: (token: string) => organizationsService.rejectInvitation(token),
+  });
+}
+
+export function useActivities(
+  orgId: string | null,
+  limit: number = 50,
+  offset: number = 0
+) {
+  return useQuery({
+    queryKey: ["activities", orgId, limit, offset],
+    queryFn: () => organizationsService.listActivities(orgId!, limit, offset),
+    enabled: !!orgId,
   });
 }

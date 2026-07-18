@@ -6,8 +6,8 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sentinel_api.models.membership import Membership
 from sentinel_api.models.organization import Organization
+from sentinel_api.models.organization_member import OrganizationMember
 
 
 class OrganizationRepository:
@@ -60,9 +60,8 @@ class OrganizationRepository:
         """Lists all organizations a user is a member of."""
         stmt = (
             select(Organization)
-            .join(Membership, Membership.organization_id == Organization.id)
-            .where(Membership.user_id == user_id)
-            .where(Membership.workspace_id.is_(None))
+            .join(OrganizationMember, OrganizationMember.organization_id == Organization.id)
+            .where(OrganizationMember.user_id == user_id)
             .distinct()
         )
         result = await db.execute(stmt)

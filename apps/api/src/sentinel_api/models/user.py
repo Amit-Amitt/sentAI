@@ -19,7 +19,7 @@ class User(BaseModel):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
-    memberships = relationship("Membership", back_populates="user", lazy="selectin")
+    memberships = relationship("OrganizationMember", back_populates="user", lazy="selectin")
     owned_organizations = relationship(
         "Organization", back_populates="owner", lazy="selectin"
     )

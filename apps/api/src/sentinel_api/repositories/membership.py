@@ -1,16 +1,22 @@
-"""Repository for Membership entity database operations."""
-
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sentinel_api.models.membership import Membership
+from sentinel_api.models.organization_member import OrganizationMember
+from sentinel_api.models.role import Role
+from sentinel_api.models.user import User
 
 
 class MembershipRepository:
-    """Data access layer for Membership entities."""
+    """Data access layer for OrganizationMember entities (formerly Membership)."""
+
+    async def get_role_by_name(self, db: AsyncSession, name: str) -> Role | None:
+        """Retrieves a Role model by its string name."""
+        stmt = select(Role).where(Role.name == name.lower())
+        res = await db.execute(stmt)
+        return res.scalar_one_or_none()
 
     async def create(
         self,
@@ -18,14 +24,18 @@ class MembershipRepository:
         user_id: uuid.UUID,
         organization_id: uuid.UUID,
         role: str = "engineer",
-        workspace_id: Optional[uuid.UUID] = None,
-    ) -> Membership:
-        """Creates a new membership record."""
-        db_obj = Membership(
+        status: str = "active",
+    ) -> OrganizationMember:
+        """Creates a new OrganizationMember record, resolving role name to ID."""
+        role_obj = await self.get_role_by_name(db, role)
+        if not role_obj:
+            raise ValueError(f"Role '{role}' not found in database.")
+
+        db_obj = OrganizationMember(
             user_id=user_id,
             organization_id=organization_id,
-            role=role,
-            workspace_id=workspace_id,
+            role_id=role_obj.id,
+            status=status,
         )
         db.add(db_obj)
         await db.flush()
@@ -33,10 +43,10 @@ class MembershipRepository:
 
     async def get(
         self, db: AsyncSession, membership_id: uuid.UUID
-    ) -> Optional[Membership]:
-        """Retrieves a membership by primary key."""
+    ) -> Optional[OrganizationMember]:
+        """Retrieves an organization member by primary key."""
         result = await db.execute(
-            select(Membership).where(Membership.id == membership_id)
+            select(OrganizationMember).where(OrganizationMember.id == membership_id)
         )
         return result.scalars().first()
 
@@ -45,50 +55,99 @@ class MembershipRepository:
         db: AsyncSession,
         user_id: uuid.UUID,
         organization_id: uuid.UUID,
-    ) -> Optional[Membership]:
-        """Retrieves the org-level membership for a specific user and org."""
+    ) -> Optional[OrganizationMember]:
+        """Retrieves membership for a specific user and org."""
         result = await db.execute(
-            select(Membership)
-            .where(Membership.user_id == user_id)
-            .where(Membership.organization_id == organization_id)
-            .where(Membership.workspace_id.is_(None))
+            select(OrganizationMember)
+            .where(OrganizationMember.user_id == user_id)
+            .where(OrganizationMember.organization_id == organization_id)
         )
         return result.scalars().first()
 
     async def list_by_org(
-        self, db: AsyncSession, organization_id: uuid.UUID
-    ) -> List[Membership]:
-        """Lists all org-level memberships for an organization."""
-        result = await db.execute(
-            select(Membership)
-            .where(Membership.organization_id == organization_id)
-            .where(Membership.workspace_id.is_(None))
-            .order_by(Membership.created_at)
+        self,
+        db: AsyncSession,
+        organization_id: uuid.UUID,
+        search: Optional[str] = None,
+        role_filter: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Sequence[OrganizationMember]:
+        """Lists members with search, role filtering, and pagination support."""
+        stmt = select(OrganizationMember).join(User).where(
+            OrganizationMember.organization_id == organization_id
         )
-        return list(result.scalars().all())
+
+        if search:
+            search_pattern = f"%{search}%"
+            stmt = stmt.where(
+                (User.full_name.ilike(search_pattern))
+                | (User.email.ilike(search_pattern))
+            )
+
+        if role_filter:
+            stmt = stmt.join(Role).where(Role.name == role_filter.lower())
+
+        stmt = stmt.order_by(OrganizationMember.created_at).offset(offset).limit(limit)
+        result = await db.execute(stmt)
+        return result.scalars().all()
+
+    async def count_by_org(
+        self,
+        db: AsyncSession,
+        organization_id: uuid.UUID,
+        search: Optional[str] = None,
+        role_filter: Optional[str] = None,
+    ) -> int:
+        """Returns total member count matching search/filter parameters."""
+        stmt = (
+            select(func.count())
+            .select_from(OrganizationMember)
+            .join(User)
+            .where(OrganizationMember.organization_id == organization_id)
+        )
+
+        if search:
+            search_pattern = f"%{search}%"
+            stmt = stmt.where(
+                (User.full_name.ilike(search_pattern))
+                | (User.email.ilike(search_pattern))
+            )
+
+        if role_filter:
+            stmt = stmt.join(Role).where(Role.name == role_filter.lower())
+
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none() or 0
 
     async def list_by_user(
         self, db: AsyncSession, user_id: uuid.UUID
-    ) -> List[Membership]:
-        """Lists all org-level memberships for a user."""
+    ) -> List[OrganizationMember]:
+        """Lists all organization memberships for a user."""
         result = await db.execute(
-            select(Membership)
-            .where(Membership.user_id == user_id)
-            .where(Membership.workspace_id.is_(None))
-            .order_by(Membership.created_at)
+            select(OrganizationMember)
+            .where(OrganizationMember.user_id == user_id)
+            .order_by(OrganizationMember.created_at)
         )
         return list(result.scalars().all())
 
     async def update_role(
-        self, db: AsyncSession, membership: Membership, role: str
-    ) -> Membership:
-        """Updates the role on a membership."""
-        membership.role = role
+        self, db: AsyncSession, membership: OrganizationMember, role: str
+    ) -> OrganizationMember:
+        """Updates the member role by resolving role string to model ID."""
+        role_obj = await self.get_role_by_name(db, role)
+        if not role_obj:
+            raise ValueError(f"Role '{role}' not found in database.")
+
+        membership.role_id = role_obj.id
+        membership.role = role_obj
         await db.flush()
         return membership
 
-    async def delete(self, db: AsyncSession, membership: Membership) -> bool:
-        """Deletes a membership."""
+    async def delete(
+        self, db: AsyncSession, membership: OrganizationMember
+    ) -> bool:
+        """Deletes an organization member record."""
         await db.delete(membership)
         await db.flush()
         return True

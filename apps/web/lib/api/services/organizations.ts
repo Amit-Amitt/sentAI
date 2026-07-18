@@ -11,6 +11,7 @@ import type {
   Invitation,
   InvitationListResponse,
   CreateInvitationRequest,
+  MemberActivityListResponse,
 } from "../types";
 
 export const organizationsService = {
@@ -62,9 +63,20 @@ export const organizationsService = {
 
   // ── Members ────────────────────────────────────────────────
 
-  listMembers: async (orgId: string): Promise<MembershipListResponse> => {
+  listMembers: async (
+    orgId: string,
+    search?: string,
+    roleFilter?: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<MembershipListResponse> => {
+    const params: Record<string, any> = { limit, offset };
+    if (search) params.search = search;
+    if (roleFilter && roleFilter !== "all") params.role_filter = roleFilter;
+
     const { data } = await axiosInstance.get<MembershipListResponse>(
-      `/organizations/${orgId}/members`
+      `/organizations/${orgId}/members`,
+      { params }
     );
     return data;
   },
@@ -103,6 +115,16 @@ export const organizationsService = {
     return data;
   },
 
+  transferOwnership: async (
+    orgId: string,
+    memberId: string
+  ): Promise<Membership> => {
+    const { data } = await axiosInstance.post<Membership>(
+      `/organizations/${orgId}/members/${memberId}/transfer-ownership`
+    );
+    return data;
+  },
+
   // ── Invitations ────────────────────────────────────────────
 
   listInvitations: async (orgId: string): Promise<InvitationListResponse> => {
@@ -119,6 +141,63 @@ export const organizationsService = {
     const { data } = await axiosInstance.post<Invitation>(
       `/organizations/${orgId}/invitations`,
       payload
+    );
+    return data;
+  },
+
+  resendInvitation: async (
+    orgId: string,
+    invitationId: string
+  ): Promise<Invitation> => {
+    const { data } = await axiosInstance.post<Invitation>(
+      `/organizations/${orgId}/invitations/${invitationId}/resend`
+    );
+    return data;
+  },
+
+  cancelInvitation: async (
+    orgId: string,
+    invitationId: string
+  ): Promise<Invitation> => {
+    const { data } = await axiosInstance.delete<Invitation>(
+      `/organizations/${orgId}/invitations/${invitationId}`
+    );
+    return data;
+  },
+
+  // ── Public token invitation flows ─────────────────────────
+
+  getInvitation: async (token: string): Promise<Invitation> => {
+    const { data } = await axiosInstance.get<Invitation>(
+      `/invitations/${token}`
+    );
+    return data;
+  },
+
+  acceptInvitation: async (token: string): Promise<Invitation> => {
+    const { data } = await axiosInstance.post<Invitation>(
+      `/invitations/${token}/accept`
+    );
+    return data;
+  },
+
+  rejectInvitation: async (token: string): Promise<Invitation> => {
+    const { data } = await axiosInstance.post<Invitation>(
+      `/invitations/${token}/reject`
+    );
+    return data;
+  },
+
+  // ── Member Audit Activities ────────────────────────────────
+
+  listActivities: async (
+    orgId: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<MemberActivityListResponse> => {
+    const { data } = await axiosInstance.get<MemberActivityListResponse>(
+      `/organizations/${orgId}/activity`,
+      { params: { limit, offset } }
     );
     return data;
   },

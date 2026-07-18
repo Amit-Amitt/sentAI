@@ -1,9 +1,8 @@
-"""Invitation model — pending team invitations to an organization."""
-
 import uuid
 from datetime import datetime
+from typing import Any, List
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, JSON, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,7 +10,7 @@ from sentinel_api.database.base import BaseModel
 
 
 class Invitation(BaseModel):
-    """Pending invitation for a user to join an organization."""
+    """Pending/completed team invitation to join an organization and optional workspaces."""
 
     __tablename__ = "invitations"
 
@@ -26,10 +25,11 @@ class Invitation(BaseModel):
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
+    workspaces: Mapped[List[str]] = mapped_column(JSON, default=list)
 
     # Parent organization
     organization_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False
     )
     organization = relationship(
         "Organization", back_populates="invitations", lazy="selectin"
@@ -37,5 +37,5 @@ class Invitation(BaseModel):
 
     # Who sent the invitation
     invited_by: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )

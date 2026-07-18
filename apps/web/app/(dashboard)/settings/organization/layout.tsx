@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, Users } from "lucide-react";
+import { Building2, Users, History } from "lucide-react";
 
 const tabs = [
   { href: "/settings/organization", label: "Profile", icon: Building2 },
   { href: "/settings/organization/members", label: "Members", icon: Users },
+  { href: "/settings/organization/activity", label: "Audit Log", icon: History },
 ];
 
 export default function OrgSettingsLayout({
