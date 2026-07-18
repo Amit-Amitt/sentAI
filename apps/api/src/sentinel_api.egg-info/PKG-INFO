@@ -1,0 +1,53 @@
+Metadata-Version: 2.4
+Name: sentinel_api
+Version: 1.0.0
+Summary: Sentinel AI Backend Service
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.110.0
+Requires-Dist: uvicorn[standard]>=0.28.0
+Requires-Dist: pydantic>=2.6.0
+Requires-Dist: pydantic-settings>=2.2.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: alembic>=1.13.0
+Requires-Dist: psycopg[binary]>=3.1.0
+Requires-Dist: structlog>=24.1.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: openai>=1.12.0
+Requires-Dist: google-generativeai>=0.3.0
+Requires-Dist: langgraph>=0.1.0
+Requires-Dist: langchain-core>=0.2.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: httpx>=0.27.0; extra == "dev"
+Requires-Dist: ruff>=0.3.0; extra == "dev"
+Requires-Dist: black>=24.2.0; extra == "dev"
+Requires-Dist: aiosqlite>=0.20.0; extra == "dev"
+
+# Sentinel AI API
+
+This is the API backend for Sentinel AI, built with Python 3.12/3.13 and FastAPI.
+
+## Directory Structure
+
+- `src/sentinel_api`: Root Python package containing core modules (config, database, logging), APIs, models, schemas, and services.
+- `tests`: Unit and integration testing harness.
+
+## Local Setup
+
+1. Create a Python virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+3. Run the development server:
+   ```bash
+   uvicorn sentinel_api.main:app --reload
+   ```
