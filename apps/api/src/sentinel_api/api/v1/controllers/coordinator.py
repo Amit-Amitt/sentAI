@@ -1,52 +1,52 @@
 from fastapi import HTTPException
+from pydantic import BaseModel
+from typing import Dict, Any, Optional
 
-from sentinel_api.ai.agents.coordinator import CoordinatorAgent
-from sentinel_api.ai.config import ModelConfig
+from sentinel_api.ai.workflows.executor import WorkflowExecutor
 from sentinel_api.ai.schemas.models import (
-    AgentRequest,
     ExecutionContext,
     IncidentContext,
 )
 from sentinel_api.api.v1.validators.schemas import CoordinatorRunRequest
 
 
-class CoordinatorController:
-    """Controller handling manual Coordinator execution invocations."""
+class WorkflowController:
+    """Controller handling manual LangGraph Workflow execution invocations."""
 
     def __init__(self) -> None:
-        self.coordinator = CoordinatorAgent()
+        self.executor = WorkflowExecutor()
 
     async def run(self, payload: CoordinatorRunRequest) -> dict:
-        """Executes the coordinator pipeline and returns the execution states."""
+        """Executes the workflow graph and returns the execution thread."""
         try:
             exec_ctx = ExecutionContext(
-                request_id=payload.execution_context.get("request_id")
-                or "manual-req",
-                correlation_id=payload.execution_context.get("correlation_id")
-                or "manual-corr",
-                agent_id="coordinator-manual",
+                request_id=payload.execution_context.get("request_id") or "manual-req",
+                correlation_id=payload.execution_context.get("correlation_id") or "manual-corr",
+                agent_id="langgraph-orchestrator",
             )
             incident_ctx = IncidentContext(
-                incident_id=payload.incident_context.get("incident_id")
-                or "INC-MANUAL",
+                incident_id=payload.incident_context.get("incident_id") or "INC-MANUAL",
                 severity=payload.incident_context.get("severity") or "SEV2",
                 status=payload.incident_context.get("status") or "active",
-                summary=payload.incident_context.get("summary")
-                or "Manual test run",
+                summary=payload.incident_context.get("summary") or "Manual test run",
                 signals=payload.incident_context.get("signals") or {},
             )
-            request = AgentRequest(
+            
+            # Start workflow in background or await it
+            # The executor.start creates a thread ID
+            result = await self.executor.start(
+                incident=incident_ctx,
                 execution_context=exec_ctx,
-                incident_context=incident_ctx,
-                inputs=payload.inputs or {},
+                intermediate_results=payload.inputs or {}
             )
-            config = ModelConfig(provider="openai", model_name="gpt-4")
-            result = await self.coordinator.execute(request, config)
-            if not result.success:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Coordinator run failed: {result.reasoning_summary}",
-                )
-            return result.output
+            
+            return result
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    async def get_status(self, thread_id: str) -> dict:
+        """Exposes the live execution timeline to the dashboard."""
+        try:
+            return await self.executor.get_status(thread_id)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))

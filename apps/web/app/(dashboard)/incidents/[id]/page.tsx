@@ -3,18 +3,29 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { AlertCircle, ArrowLeft, Bot, CheckSquare, Clock, Cpu, FileCheck, ShieldAlert, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowLeft, Bot, CheckSquare, Clock, Cpu, FileCheck, ShieldAlert, Sparkles, BrainCircuit } from "lucide-react";
 
 import { useStore } from "@/lib/store/use-store";
 import { SeverityBadge } from "@/components/ui/severity-badge";
 import { ConfidenceIndicator } from "@/components/ui/confidence-indicator";
 import { EvidenceViewer } from "@/components/ui/evidence-viewer";
 import { useIncident } from "@/lib/api/hooks/useIncident";
+import { useSimilarMemories } from "@/lib/api/hooks/useMemory";
+import { useOrgStore } from "@/lib/store/org-store";
 
 export default function IncidentDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { activeWorkspace } = useOrgStore();
+  const workspaceId = activeWorkspace?.id || null;
   const { toggleChecklistItem, checkedPlaybookItems } = useStore();
   const { data: incident, isLoading, error } = useIncident(id);
+  
+  // Retrieve similar incidents from memory for the context panel
+  const { data: similarMemories, isLoading: isLoadingMemories } = useSimilarMemories(
+    workspaceId,
+    incident?.summary || "",
+    3
+  );
 
   if (isLoading) {
     return (
@@ -155,8 +166,49 @@ export default function IncidentDetailsPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
 
-        {/* Right Column: Root Cause hypotheses, Recovery Checklist, and Recs */}
+        {/* Right Column: Root Cause hypotheses, Recovery Checklist, Context Panel, and Recs */}
         <div className="space-y-6">
+          {/* AI Context Panel (Historical Matches) */}
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 backdrop-blur-md space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+              <BrainCircuit className="h-4 w-4" /> AI Context Engine
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Based on the memory bank, the following similar incidents were successfully resolved in the past.
+            </p>
+            
+            {isLoadingMemories ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-12 bg-primary/10 rounded-xl" />
+                <div className="h-12 bg-primary/10 rounded-xl" />
+              </div>
+            ) : similarMemories && similarMemories.length > 0 ? (
+              <div className="space-y-3">
+                {similarMemories.map(memory => (
+                  <Link href={`/incidents/${memory.incident_id}`} key={memory.id}>
+                    <div className="group rounded-xl bg-card/60 border border-border/50 p-3 hover:border-primary/50 transition-colors space-y-2 mt-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-mono font-bold text-primary">{memory.incident_id}</span>
+                        <span className="text-muted-foreground">{Math.round((memory.time_taken_ms || 0)/1000)}s MTTR</span>
+                      </div>
+                      <p className="text-xs font-medium line-clamp-1">{memory.summary}</p>
+                      <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                        <span className="text-[10px] text-muted-foreground font-semibold uppercase">Past Root Cause:</span>
+                        <span className="text-[10px] text-emerald-400 font-bold truncate">
+                          {memory.root_cause?.primary || "Unknown"}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/60 p-4 text-center">
+                <p className="text-xs text-muted-foreground">No historical matches found for this signature.</p>
+              </div>
+            )}
+          </div>
+
           {/* Root cause analysis */}
           <div className="rounded-2xl border border-border/80 bg-card/40 p-6 backdrop-blur-md space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">

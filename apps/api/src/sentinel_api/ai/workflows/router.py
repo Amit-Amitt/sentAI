@@ -7,11 +7,6 @@ logger = structlog.get_logger("sentinel_api.ai.workflows.router")
 
 
 def check_status_interrupt(state: WorkflowState) -> Union[str, None]:
-    """Checks if the workflow status requires aborting or pausing the execution path.
-
-    Returns:
-        '__end__' if status is CANCELLED or PAUSED, otherwise None.
-    """
     status = state.get("status")
     if status in ["CANCELLED", "PAUSED"]:
         logger.info("Routing interrupted due to workflow status", status=status)
@@ -19,13 +14,10 @@ def check_status_interrupt(state: WorkflowState) -> Union[str, None]:
     return None
 
 
-def handle_error_routing(state: WorkflowState, node_name: str) -> Union[str, None]:
+def handle_error_routing(state: WorkflowState, node_name: str, next_node: str) -> str:
     """Checks the state for errors of the current node to decide on retry or failure routing.
-
-    Returns:
-        The node name to retry, '__end__' if retries exceeded, or None if no error.
+    If retry is exceeded, it degrades gracefully and moves to the next node.
     """
-    # First check status interrupt
     status_route = check_status_interrupt(state)
     if status_route:
         return status_route
@@ -45,120 +37,51 @@ def handle_error_routing(state: WorkflowState, node_name: str) -> Union[str, Non
             return node_name
         else:
             logger.error(
-                "Routing logic: Max retries exceeded, routing to failure state/END",
+                "Routing logic: Max retries exceeded, degrading gracefully to next node",
                 node=node_name,
+                next_node=next_node,
                 retry_count=retries,
                 max_retries=max_retries,
             )
-            return "__end__"
-    return None
+            return next_node
+            
+    return next_node
 
 
 def route_coordinator(state: WorkflowState) -> Union[str, List[str]]:
-    """Determines routing after the Coordinator node.
-
-    Supports:
-    - Parallel execution: returns ['log', 'metrics'] if state indicates parallel execution.
-    - Conditional execution: skips metrics if 'skip_metrics' is in intermediate results.
-    - Sequential default: routes to 'log'.
-    """
-    error_route = handle_error_routing(state, "coordinator")
-    if error_route:
-        return error_route
-
-    # Check for parallel execution override
-    if state.get("intermediate_results", {}).get("parallel", False):
-        logger.info("Routing coordinator to parallel branches: log and metrics")
-        return ["log", "metrics"]
-
-    # Check for conditional branch
-    if state.get("intermediate_results", {}).get("branch") == "skip_metrics":
-        logger.info("Routing coordinator: skip_metrics conditional branch taken")
-        return "log"  # coordinator -> log -> deployment (skipping metrics branch)
-
-    logger.info("Routing coordinator: default sequential path to log")
-    return "log"
+    error_route = handle_error_routing(state, "coordinator", "fan_out")
+    if error_route == "fan_out":
+        return ["log", "metrics", "deployment"]
+    return error_route
 
 
 def route_log(state: WorkflowState) -> str:
-    """Determines routing after the Log node."""
-    error_route = handle_error_routing(state, "log")
-    if error_route:
-        return error_route
-
-    # If parallel mode is active or skip_metrics is requested, route to deployment.
-    # Otherwise, standard sequential execution routes: coordinator -> log -> metrics.
-    is_parallel = state.get("intermediate_results", {}).get("parallel", False)
-    is_skip_metrics = (
-        state.get("intermediate_results", {}).get("branch") == "skip_metrics"
-    )
-
-    if is_parallel or is_skip_metrics:
-        logger.info(
-            "Routing log: routing to deployment",
-            parallel=is_parallel,
-            skip_metrics=is_skip_metrics,
-        )
-        return "deployment"
-
-    logger.info("Routing log (sequential mode): routing to metrics")
-    return "metrics"
+    return handle_error_routing(state, "log", "merge_results")
 
 
 def route_metrics(state: WorkflowState) -> str:
-    """Determines routing after the Metrics node."""
-    error_route = handle_error_routing(state, "metrics")
-    if error_route:
-        return error_route
-
-    logger.info("Routing metrics: routing to deployment")
-    return "deployment"
+    return handle_error_routing(state, "metrics", "merge_results")
 
 
 def route_deployment(state: WorkflowState) -> str:
-    """Determines routing after the Deployment node.
-
-    Supports:
-    - Conditional branching: skips review if 'skip_review' is in intermediate results.
-    - Sequential default: routes to 'review'.
-    """
-    error_route = handle_error_routing(state, "deployment")
-    if error_route:
-        return error_route
-
-    if state.get("intermediate_results", {}).get("branch") == "skip_review":
-        logger.info("Routing deployment: skip_review conditional branch taken")
-        return "root_cause"
-
-    logger.info("Routing deployment: default sequential path to review")
-    return "review"
+    return handle_error_routing(state, "deployment", "merge_results")
 
 
-def route_review(state: WorkflowState) -> str:
-    """Determines routing after the Review node."""
-    error_route = handle_error_routing(state, "review")
-    if error_route:
-        return error_route
-
-    logger.info("Routing review: routing to root_cause")
-    return "root_cause"
+def route_merge_results(state: WorkflowState) -> str:
+    return handle_error_routing(state, "merge_results", "root_cause")
 
 
 def route_root_cause(state: WorkflowState) -> str:
-    """Determines routing after the RootCause node."""
-    error_route = handle_error_routing(state, "root_cause")
-    if error_route:
-        return error_route
+    return handle_error_routing(state, "root_cause", "similar_incidents")
 
-    logger.info("Routing root_cause: routing to recommendation")
-    return "recommendation"
+
+def route_similar_incidents(state: WorkflowState) -> str:
+    return handle_error_routing(state, "similar_incidents", "recommendation")
 
 
 def route_recommendation(state: WorkflowState) -> str:
-    """Determines routing after the Recommendation node."""
-    error_route = handle_error_routing(state, "recommendation")
-    if error_route:
-        return error_route
+    return handle_error_routing(state, "recommendation", "report")
 
-    logger.info("Routing recommendation: routing to END")
-    return "__end__"
+
+def route_report(state: WorkflowState) -> str:
+    return handle_error_routing(state, "report", "__end__")

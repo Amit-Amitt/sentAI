@@ -35,6 +35,35 @@ def last_value_reducer(left: Any, right: Any) -> Any:
 class WorkflowState(TypedDict):
     """Strongly typed shared workflow state for Sentinel AI's LangGraph orchestrator."""
 
+    # Requested Fields
+    incident_id: Annotated[str, last_value_reducer]
+    incident_title: Annotated[str, last_value_reducer]
+    incident_severity: Annotated[str, last_value_reducer]
+    incident_timestamp: Annotated[str, last_value_reducer]
+    
+    logs: Annotated[list[dict[str, Any]], append_reducer]
+    metrics: Annotated[list[dict[str, Any]], append_reducer]
+    deployment_events: Annotated[list[dict[str, Any]], append_reducer]
+    alerts: Annotated[list[dict[str, Any]], append_reducer]
+    
+    ai_memory: Annotated[dict[str, Any], dict_merge_reducer]
+    similar_incidents: Annotated[list[dict[str, Any]], append_reducer]
+    
+    log_analysis: Annotated[dict[str, Any], dict_merge_reducer]
+    metrics_analysis: Annotated[dict[str, Any], dict_merge_reducer]
+    deployment_analysis: Annotated[dict[str, Any], dict_merge_reducer]
+    root_cause: Annotated[dict[str, Any], dict_merge_reducer]
+    
+    confidence_score: Annotated[float, last_value_reducer]
+    recommended_actions: Annotated[list[dict[str, Any]], append_reducer]
+    incident_timeline: Annotated[list[dict[str, Any]], append_reducer]
+    generated_report: Annotated[dict[str, Any], dict_merge_reducer]
+    github_patch: Annotated[dict[str, Any], dict_merge_reducer]
+    execution_history: Annotated[list[dict[str, Any]], append_reducer]
+    execution_timeline: Annotated[list[dict[str, Any]], append_reducer]
+    agent_status: Annotated[dict[str, str], dict_merge_reducer]
+
+    # Required Operational Context
     incident: IncidentContext
     execution_context: ExecutionContext
     current_node: Annotated[str, last_value_reducer]
@@ -42,10 +71,9 @@ class WorkflowState(TypedDict):
     intermediate_results: Annotated[dict[str, Any], dict_merge_reducer]
     agent_outputs: Annotated[dict[str, AgentResult], dict_merge_reducer]
     confidence_scores: Annotated[dict[str, float], dict_merge_reducer]
-    execution_timeline: Annotated[list[dict[str, Any]], append_reducer]
     errors: Annotated[list[dict[str, Any]], append_reducer]
     retry_count: Annotated[dict[str, int], dict_merge_reducer]
-    status: Annotated[str, last_value_reducer]  # e.g., "RUNNING", "PAUSED", "COMPLETED", "FAILED", "CANCELLED"
+    status: Annotated[str, last_value_reducer]  # RUNNING, PAUSED, COMPLETED, FAILED, CANCELLED
 
 
 def create_initial_state(
@@ -54,6 +82,28 @@ def create_initial_state(
 ) -> WorkflowState:
     """Helper function to initialize a new WorkflowState with default values."""
     return {
+        "incident_id": incident.incident_id,
+        "incident_title": incident.summary,
+        "incident_severity": incident.severity,
+        "incident_timestamp": incident.signals.get("timestamp", ""),
+        "logs": [],
+        "metrics": [],
+        "deployment_events": [],
+        "alerts": [],
+        "ai_memory": {},
+        "similar_incidents": [],
+        "log_analysis": {},
+        "metrics_analysis": {},
+        "deployment_analysis": {},
+        "root_cause": {},
+        "confidence_score": 0.0,
+        "recommended_actions": [],
+        "incident_timeline": [],
+        "generated_report": {},
+        "github_patch": {},
+        "execution_history": [],
+        "execution_timeline": [],
+        "agent_status": {},
         "incident": incident,
         "execution_context": execution_context,
         "current_node": "",
@@ -61,7 +111,6 @@ def create_initial_state(
         "intermediate_results": {},
         "agent_outputs": {},
         "confidence_scores": {},
-        "execution_timeline": [],
         "errors": [],
         "retry_count": {},
         "status": "RUNNING",

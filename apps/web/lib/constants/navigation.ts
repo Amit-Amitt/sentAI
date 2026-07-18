@@ -5,12 +5,14 @@ import {
   FolderKanban,
   HelpCircle,
   LayoutDashboard,
+  Puzzle,
   Settings,
   ShieldAlert,
   Users,
   User,
   ShieldCheck,
   Binary,
+  Key,
 } from "lucide-react";
 
 export const primaryNavigation = [
@@ -70,6 +72,16 @@ export const settingsNavigation = [
     href: "/settings/workspace",
     label: "Workspace",
     icon: FolderKanban,
+  },
+  {
+    href: "/settings/apikeys",
+    label: "Workspace API Keys",
+    icon: Key,
+  },
+  {
+    href: "/settings/integrations",
+    label: "Integrations",
+    icon: Puzzle,
   },
   {
     href: "/settings/auth-tests",

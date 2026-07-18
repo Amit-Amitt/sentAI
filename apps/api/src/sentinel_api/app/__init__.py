@@ -13,6 +13,7 @@ from sentinel_api.middleware import (
     LoggingMiddleware,
     ProcessTimeMiddleware,
     RequestIdMiddleware,
+    ApiKeySecurityMiddleware,
 )
 
 logger = structlog.get_logger("sentinel_api.app")
@@ -31,7 +32,7 @@ async def lifespan(app: FastAPI):
     # Initialize DB schemas automatically
     from sentinel_api.database.base import Base
     from sentinel_api.database.session import engine, AsyncSessionLocal
-    from sentinel_api.database.seed import seed_roles_and_permissions
+    from sentinel_api.database.seed import seed_roles_and_permissions, seed_integration_providers
     # Import all models so Base.metadata discovers them
     import sentinel_api.models  # noqa: F401
     async with engine.begin() as conn:
@@ -39,6 +40,7 @@ async def lifespan(app: FastAPI):
 
     async with AsyncSessionLocal() as session:
         await seed_roles_and_permissions(session)
+        await seed_integration_providers(session)
 
     yield
 
@@ -80,6 +82,7 @@ def create_app() -> FastAPI:
     # Note: Middlewares execute in reverse order of addition.
     # RequestIdMiddleware (runs 1st) -> LoggingMiddleware (runs 2nd) ->
     # ProcessTimeMiddleware (runs 3rd).
+    app.add_middleware(ApiKeySecurityMiddleware)
     app.add_middleware(ProcessTimeMiddleware)
     app.add_middleware(LoggingMiddleware)
     app.add_middleware(RequestIdMiddleware)

@@ -1,20 +1,28 @@
 from fastapi import APIRouter, Depends
 
-from sentinel_api.api.v1.controllers.coordinator import CoordinatorController
+from sentinel_api.api.v1.controllers.coordinator import WorkflowController
 from sentinel_api.api.v1.validators.schemas import CoordinatorRunRequest
 
-router = APIRouter(prefix="/coordinator", tags=["coordinator"])
+router = APIRouter(prefix="/workflow", tags=["workflow"])
 
 
-def get_controller() -> CoordinatorController:
-    """Dependency helper instantiating CoordinatorController."""
-    return CoordinatorController()
+def get_controller() -> WorkflowController:
+    """Dependency helper instantiating WorkflowController."""
+    return WorkflowController()
 
 
 @router.post("/run", response_model=dict)
-async def run_coordinator(
+async def run_workflow(
     payload: CoordinatorRunRequest,
-    controller: CoordinatorController = Depends(get_controller),
+    controller: WorkflowController = Depends(get_controller),
 ) -> dict:
-    """Manually invokes the coordinator multi-agent execution pipeline."""
+    """Invokes the LangGraph multi-agent execution pipeline."""
     return await controller.run(payload)
+
+@router.get("/{thread_id}/status", response_model=dict)
+async def get_workflow_status(
+    thread_id: str,
+    controller: WorkflowController = Depends(get_controller),
+) -> dict:
+    """Fetches the live status and execution timeline of a workflow run."""
+    return await controller.get_status(thread_id)

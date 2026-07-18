@@ -205,6 +205,25 @@ class WorkflowExecutor:
             # Validate the final workflow state integrity
             validate_workflow_state(final_state)
 
+            # Save the final completed context to the AI Memory system
+            if final_state["status"] == "COMPLETED":
+                try:
+                    from sentinel_api.database.session import AsyncSessionLocal
+                    from sentinel_api.services.memory import MemoryService
+                    
+                    incident = final_state.get("incident")
+                    if incident and incident.workspace_id and incident.organization_id:
+                        async with AsyncSessionLocal() as session:
+                            memory_service = MemoryService(session)
+                            await memory_service.save_memory(
+                                incident=incident,
+                                state=final_state,
+                                workspace_id=incident.workspace_id,
+                                organization_id=incident.organization_id
+                            )
+                except Exception as mem_err:
+                    logger.error("Failed to persist incident to AI Memory Engine", error=str(mem_err))
+
             return {
                 "thread_id": thread_id,
                 "status": final_state["status"],

@@ -12,6 +12,21 @@ from sentinel_api.models.role import Permission, Role
 from sentinel_api.models.user import User
 from sentinel_api.models.workspace import Workspace
 from sentinel_api.models.workspace_member import WorkspaceMember
+from sentinel_api.models.api_key import ApiKey, ApiKeyPermission, ApiKeyUsage, ApiKeyAudit
+from sentinel_api.models.integration import (
+    IntegrationProvider,
+    WorkspaceIntegration,
+    IntegrationCredential,
+    IntegrationWebhook,
+    IntegrationSync,
+    IntegrationAudit,
+)
+
+from sentinel_api.models.memory import (
+    IncidentMemory,
+    IncidentTag,
+    IncidentEmbedding,
+)
 
 __all__ = [
     "Invitation",
@@ -27,4 +42,19 @@ __all__ = [
     "OrganizationMember",
     "WorkspaceMember",
     "MemberActivity",
+    "ApiKey",
+    "ApiKeyPermission",
+    "ApiKeyUsage",
+    "ApiKeyAudit",
+    "IntegrationProvider",
+    "WorkspaceIntegration",
+    "IntegrationCredential",
+    "IntegrationWebhook",
+    "IntegrationSync",
+    "IntegrationAudit",
+    "IncidentMemory",
+    "IncidentTag",
+    "IncidentEmbedding",
 ]
+
+

@@ -5,3 +5,5 @@ export * from "./coordinator";
 export * from "./agents";
 export * from "./organizations";
 export * from "./workspaces";
+export * from "./apikeys";
+export * from "./memory";
